@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+  labels:
+    app: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      containers:
+      - name: demo
+        image: k3d-dummy-app-registry:6000/demo:v1.0
+        imagePullPolicy: Always
+        #command: [ "/bin/ash", "-c", "--" ]
+        #args: [ "while true; do sleep 30; done;" ]
+        ports:
+        - containerPort: 8080
+        env:   
+            - name: DB_HOST   
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-conf  
+                  key: host
+            - name: DB_NAME  
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-conf
+                  key: name
+            - name: POSTGRES_USER  
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets 
+                  key: postgres_user
+            - name: POSTGRES_PASSWORD 
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: postgres_password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo
+  labels:
+    run: demo
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: webapp
+    protocol: TCP
+  selector:
+    app: demo

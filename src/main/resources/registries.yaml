@@ -1,0 +1,4 @@
+mirrors:
+"localhost:6000":
+    endpoint:
+      - http://k3d-dummy-app-registry:6000
